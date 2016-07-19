@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/vbatts/go-mtree"
+	"github.com/stephen679/go-mtree"
 )
 
 var (
@@ -17,6 +17,7 @@ var (
 	flAddKeywords  = flag.String("K", "", "Add the specified (delimited by comma or space) keywords to the current set of keywords")
 	flUseKeywords  = flag.String("k", "", "Use the specified (delimited by comma or space) keywords as the current set of keywords")
 	flListKeywords = flag.Bool("l", false, "List the keywords available")
+	flEncode       = flag.String("e", "", "Encode string")
 )
 
 func main() {
@@ -30,6 +31,9 @@ func main() {
 		}
 	}()
 
+	if *flEncode != "" {
+		fmt.Printf("Result of encoding %s: %s\n", *flEncode, mtree.Encode(*flEncode))
+	}
 	// -l
 	if *flListKeywords {
 		fmt.Println("Available keywords:")
