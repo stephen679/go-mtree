@@ -6,15 +6,23 @@ import (
 	"unicode"
 )
 
+// graphic can contain letters
+// look into unicode.RangeTable, figure out which Ranges need to be encoded
+
 // Encode does this
 func Encode(str string) string {
 	characters := []byte(str)
 	result := bytes.Buffer{}
 	for _, c := range characters {
-		if unicode.IsSpace(rune(c)) || unicode.IsControl(rune(c)) ||
-			unicode.IsSymbol(rune(c)) || unicode.IsGraphic(rune(c)) {
-			result.WriteString(fmt.Sprintf("\\%#o", c))
-		} else {
+		r := rune(c)
+		switch {
+		case unicode.IsSpace(r):
+			fallthrough
+		case unicode.IsLetter(r):
+			fallthrough
+		case unicode.IsControl(r):
+			result.WriteString(fmt.Sprintf("\\%03o", c))
+		default:
 			result.WriteByte(c)
 		}
 	}
