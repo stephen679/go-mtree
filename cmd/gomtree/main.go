@@ -18,6 +18,7 @@ var (
 	flUseKeywords  = flag.String("k", "", "Use the specified (delimited by comma or space) keywords as the current set of keywords")
 	flListKeywords = flag.Bool("l", false, "List the keywords available")
 	flEncode       = flag.String("e", "", "Encode string")
+	flDecode       = flag.Bool("d", false, "Decode string")
 )
 
 func main() {
@@ -32,7 +33,11 @@ func main() {
 	}()
 
 	if *flEncode != "" {
-		fmt.Printf("Result of encoding %s: %s\n", *flEncode, mtree.Encode(*flEncode))
+		encoded := mtree.Encode(*flEncode)
+		fmt.Printf("Result of encoding %s: %s\n", *flEncode, encoded)
+		if *flDecode {
+			fmt.Printf("Result of decoding %s: %s\n", encoded, mtree.Decode(encoded))
+		}
 	}
 	// -l
 	if *flListKeywords {
