@@ -54,7 +54,7 @@ func Decode(str string, encodeLen int) string {
 					result.WriteByte(c)
 				} else {
 					result.WriteByte(octal)
-					i += encodeLen
+					i += (encodeLen + 1)
 					continue
 				}
 				// try to stringify the next three characters and convert from octal into a character
