@@ -36,7 +36,7 @@ func main() {
 		encoded := mtree.Encode(*flEncode)
 		fmt.Printf("Result of encoding %s: %s\n", *flEncode, encoded)
 		if *flDecode {
-			fmt.Printf("Result of decoding %s: %s\n", encoded, mtree.Decode(encoded))
+			fmt.Printf("Result of decoding %s: %s\n", encoded, mtree.Decode(encoded, 3))
 		}
 	}
 	// -l
