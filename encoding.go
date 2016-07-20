@@ -39,7 +39,7 @@ func Encode(str string) string {
 // Decode decodes a string that potentially contains encoded characters that were
 // encoded by Encode above. encodeLen is the length of an encoded character resulting from
 // using the Encode function above
-func Decode(str string, encodeLen int) string {
+func Decode(str string) string {
 	result := bytes.Buffer{}
 	characters := []byte(str)
 	i := 0
@@ -48,16 +48,15 @@ func Decode(str string, encodeLen int) string {
 		if c == '\\' {
 			if i+1 < len(characters) && characters[i+1] == '\\' {
 				result.WriteByte(c)
-			} else if i+encodeLen < len(characters) {
-				octal, err := octalStrToByte(string(characters[i+1 : i+encodeLen]))
+			} else if i+3 < len(characters) {
+				octal, err := octalStrToByte(string(characters[i+1 : i+4]))
 				if err != nil {
 					result.WriteByte(c)
 				} else {
 					result.WriteByte(octal)
-					i += (encodeLen + 1)
+					i += 4
 					continue
 				}
-				// try to stringify the next three characters and convert from octal into a character
 			} else {
 				result.WriteByte(c)
 			}
@@ -69,8 +68,8 @@ func Decode(str string, encodeLen int) string {
 	return result.String()
 }
 
-// octalByteToString takes in a byte slice that attempts to represent an
-// octal character
+// octalByteToString takes in a sring that attempts to represent a character in
+// octal format
 func octalStrToByte(str string) (byte, error) {
 	result := 0
 	numChars := len(str)
