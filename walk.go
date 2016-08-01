@@ -331,26 +331,16 @@ func signatureEntries(root string) []Entry {
 		sigEntries = append(sigEntries, hostEntry)
 	}
 
-	if tree := filepath.Clean(root); tree == "." || tree == ".." {
-		root, err := os.Getwd()
-		if err == nil {
-			// use parent directory of current directory
-			if tree == ".." {
-				root = filepath.Dir(root)
-			}
-			treeEntry := Entry{
-				Type: CommentType,
-				Raw:  fmt.Sprintf("#%16s%s", "tree: ", filepath.Clean(root)),
-			}
-			sigEntries = append(sigEntries, treeEntry)
-		}
-	} else {
-		treeEntry := Entry{
-			Type: CommentType,
-			Raw:  fmt.Sprintf("#%16s%s", "tree: ", filepath.Clean(root)),
-		}
-		sigEntries = append(sigEntries, treeEntry)
+	var fullpath string
+	fullpath, err = filepath.Abs(root)
+	if err != nil {
+		fullpath = root
 	}
+	treeEntry := Entry{
+		Type: CommentType,
+		Raw:  fmt.Sprintf("#%16s%s", "tree: ", filepath.Clean(fullpath)),
+	}
+	sigEntries = append(sigEntries, treeEntry)
 
 	dateEntry := Entry{
 		Type: CommentType,
