@@ -118,6 +118,9 @@ func TarCheck(tarDH, dh *DirectoryHierarchy, keywords []string) (*Result, error)
 			break
 		}
 	}
+	if tarRoot == nil {
+		return nil, fmt.Errorf("root \".\" Entry could not be found")
+	}
 	tarRoot.Next = &Entry{
 		Name: "seen",
 		Type: CommentType,
@@ -196,7 +199,7 @@ func TarCheck(tarDH, dh *DirectoryHierarchy, keywords []string) (*Result, error)
 			}
 		case DotDotType:
 			if outOfTree {
-				return &result, fmt.Errorf("No parent node.")
+				return &result, fmt.Errorf("No parent node")
 			}
 			curDir = curDir.Ascend()
 			if curDir == nil {

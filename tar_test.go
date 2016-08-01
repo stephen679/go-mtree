@@ -53,30 +53,16 @@ func TestTar(t *testing.T) {
 		}
 		log.Println(fh.Stat())
 		fh.Close() */
-	fh, err := os.Open("./testdata/test.tar")
+	tdh, err := walkTar("./testdata/test.tar", append(DefaultTarKeywords, "sha1"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	str := NewTarStreamer(fh, append(DefaultKeywords, "sha1"))
 
-	if _, err := io.Copy(ioutil.Discard, str); err != nil && err != io.EOF {
-		t.Fatal(err)
-	}
-	if err := str.Close(); err != nil {
-		t.Fatal(err)
-	}
-	defer fh.Close()
-
-	// get DirectoryHierarcy struct from walking the tar archive
-	tdh, err := str.Hierarchy()
-	if err != nil {
-		t.Fatal(err)
-	}
 	if tdh == nil {
 		t.Fatal("expected a DirectoryHierarchy struct, but got nil")
 	}
 
-	fh, err = os.Create("./testdata/test.mtree")
+	fh, err := os.Create("./testdata/test.mtree")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +102,6 @@ func TestTar(t *testing.T) {
 			for _, f := range res.Failures {
 				t.Errorf("%s\n", f)
 			}
-			errors += "Keyword validation errors\n"
 		case len(res.Missing) > 0:
 			for _, m := range res.Missing {
 				missingpath, err := m.Path()
@@ -139,6 +124,51 @@ func TestTar(t *testing.T) {
 		if errors != "" {
 			t.Fatal(errors)
 		}
+	}
+}
+
+// Test to make sure TarCheck catches missing files
+func TestMissingFiles(t *testing.T) {
+	tdh, err := walkTar("./testdata/test_missing_files.tar", []string{"type"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// the DirectoryHierarchy if you parsed a spec associated with test.tar
+	dh, err := walkTar("./testdata/test.tar", []string{"type"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := TarCheck(tdh, dh, []string{"type"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res != nil && len(res.Missing) == 0 {
+		t.Errorf("Expected missing files for this test")
+	}
+	if res != nil && len(res.Extra) > 0 {
+		t.Errorf("Extra files not expected for this test")
+	}
+}
+
+func TestExtraFiles(t *testing.T) {
+	tdh, err := walkTar("./testdata/test_extra_files.tar", []string{"type"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// the DirectoryHierarchy if you parsed a spec associated with test.tar
+	dh, err := walkTar("./testdata/test.tar", []string{"type"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := TarCheck(tdh, dh, []string{"type"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res != nil && len(res.Extra) == 0 {
+		t.Errorf("Expected extra files for this test")
+	}
+	if res != nil && len(res.Missing) > 0 {
+		t.Errorf("Missing files not expected for this test")
 	}
 }
 
@@ -180,4 +210,26 @@ func makeTarStream() ([]byte, error) {
 		return nil, err
 	}
 	return buf.Bytes(), nil
+}
+
+func walkTar(tarname string, keywords []string) (*DirectoryHierarchy, error) {
+	fh, err := os.Open(tarname)
+	if err != nil {
+		return nil, err
+	}
+	str := NewTarStreamer(fh, keywords)
+
+	if _, err = io.Copy(ioutil.Discard, str); err != nil && err != io.EOF {
+		return nil, err
+	}
+	if err = str.Close(); err != nil {
+		return nil, err
+	}
+	defer fh.Close()
+
+	dh, err := str.Hierarchy()
+	if err != nil {
+		return nil, err
+	}
+	return dh, nil
 }
